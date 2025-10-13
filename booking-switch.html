@@ -3,296 +3,253 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Retro VRcade — Book a Store</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+  <title>Retro VRcade — Booking Debug</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#ffffff; --text:#0b0b0b; --muted:#666666;
-      --accent:#1fb6ff; --accent-dark:#1593d6;
-      --card-bg:#f8f9fb; --shadow: 0 6px 18px rgba(11,11,11,0.08);
-      --radius:12px; --max-width:1100px;
-    }
-    html,body{height:100%;}
-    body{ margin:0; font-family:"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }
-    .wrap{ max-width:var(--max-width); margin:30px auto; padding:24px; }
-    header{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
-    .brand{ display:flex; gap:12px; align-items:center; }
-    .brand .logo { width:64px; height:64px; border-radius:10px; background:linear-gradient(135deg,#111 0%, #222 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:18px; box-shadow:var(--shadow); }
-    .brand h1{ margin:0; font-size:18px; font-weight:700; letter-spacing:0.5px;}
-    .brand p{ margin:0; font-size:12px; color:var(--muted)}
-    .intro{ margin:18px 0 26px; display:flex; gap:12px; align-items:center;}
-    .chooser { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:20px; }
-    @media (max-width:720px){ .chooser{ grid-template-columns:1fr; } }
-    .tile { background:var(--card-bg); border-radius:var(--radius); padding:22px; display:flex; flex-direction:column; gap:12px; justify-content:space-between; box-shadow:var(--shadow); cursor:pointer; transition:transform .14s ease, box-shadow .14s ease; border:1px solid rgba(0,0,0,0.03); }
-    .tile:hover{ transform:translateY(-6px); box-shadow: 0 12px 28px rgba(11,11,11,0.12); }
-    .tile h3{ margin:0; font-size:18px; font-weight:700; letter-spacing:0.6px;}
-    .tile p{ margin:0; color:var(--muted); font-size:13px; }
-    .cta-row { display:flex; gap:12px; align-items:center; }
-    .btn { background:var(--accent); color:white; border:none; padding:10px 16px; font-weight:700; border-radius:10px; cursor:pointer; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 6px 18px rgba(31,182,255,0.18); transition:transform .12s ease, background .12s ease; font-size:13px; }
-    .btn:hover{ transform:translateY(-2px); background:var(--accent-dark); }
-    .btn.ghost { background:transparent; color:var(--text); border:1px solid rgba(0,0,0,0.07); box-shadow:none; text-transform:none; font-weight:600; }
-    .booking-wrap{ display:none; margin-top:8px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,0,0,0.06); background:white; min-height:420px; box-shadow:var(--shadow); }
-    .booking-header{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98)); border-bottom:1px solid rgba(0,0,0,0.04); }
-    .booking-header h2{ margin:0; font-size:16px; font-weight:700;}
-    .booking-body{ padding:0; }
-    .loader { padding:46px; display:flex; align-items:center; justify-content:center; gap:12px; font-size:14px; color:var(--muted); }
-    .spinner { width:28px; height:28px; border-radius:50%; border:4px solid rgba(0,0,0,0.06); border-top-color:var(--accent); animation:spin 1s linear infinite; }
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .widget-viewport { width:100%; min-height:600px; border:0; }
-    @media (max-width:720px){ .widget-viewport{ min-height:900px; } }
-    footer{ margin-top:20px; font-size:12px; color:var(--muted); text-align:center; }
+    body{font-family:"Montserrat",system-ui,Arial;margin:20px;color:#0b0b0b}
+    .btn{background:#1fb6ff;color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
+    .ghost{background:transparent;border:1px solid #ddd;color:#111;padding:8px 12px;border-radius:8px}
+    #widget-viewport{min-height:420px;border:1px dashed #e5e7eb;padding:12px;margin-top:12px;border-radius:8px}
+    .loader{padding:30px;text-align:center;color:#666}
+    .error{padding:18px;background:#fff4f4;border:1px solid #ffd2d2;color:#8b0000;border-radius:8px;margin-top:12px}
+    .note{font-size:13px;color:#666;margin-top:8px}
+    a.linkfallback{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:#f3f4f6;color:#111;text-decoration:none}
+    pre{background:#0f1724;color:#d1fae5;padding:12px;border-radius:6px;overflow:auto;max-height:220px}
   </style>
 </head>
 <body>
-  <div class="wrap" role="main">
-    <header>
-      <div class="brand" aria-hidden="true">
-        <div class="logo">RV</div>
-        <div>
-          <h1>Retro VRcade</h1>
-          <p>Book your VR experience — Marousi or Kallithea</p>
-        </div>
-      </div>
-      <div>
-        <a class="btn ghost" href="https://retrovrcade.com" target="_blank" rel="noopener">Visit site</a>
-      </div>
-    </header>
+  <h2>Retro VRcade — Booking Debug</h2>
+  <p class="note">Click a store. Open DevTools → Console to view debug logs. If nothing appears, use the fallback link shown.</p>
 
-    <section class="intro" aria-labelledby="choose-title">
-      <div>
-        <h2 id="choose-title" style="margin:0 0 6px 0; font-size:20px;">Choose a store to book</h2>
-        <p style="margin:0; color:var(--muted)">Tap a location below and continue with the booking widget.</p>
-      </div>
-    </section>
-
-    <div id="chooser" class="chooser" aria-hidden="false">
-      <div class="tile" role="button" tabindex="0" onclick="openBooking('marousi')" onkeypress="if(event.key==='Enter')openBooking('marousi')">
-        <div>
-          <h3>Marousi Store</h3>
-          <p>The original Retro VRcade location — Themidos 6, Marousi.</p>
-        </div>
-        <div class="cta-row">
-          <button class="btn" onclick="openBooking('marousi')">Book Marousi</button>
-          <button class="btn ghost" onclick="openBooking('marousi')">Open</button>
-        </div>
-      </div>
-
-      <div class="tile" role="button" tabindex="0" onclick="openBooking('kallithea')" onkeypress="if(event.key==='Enter')openBooking('kallithea')">
-        <div>
-          <h3>Kallithea Store</h3>
-          <p>Our Kallithea store — larger space, more experiences.</p>
-        </div>
-        <div class="cta-row">
-          <button class="btn" onclick="openBooking('kallithea')">Book Kallithea</button>
-          <button class="btn ghost" onclick="openBooking('kallithea')">Open</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="booking" class="booking-wrap" aria-hidden="true">
-      <div class="booking-header">
-        <h2 id="booking-title">Booking</h2>
-        <div>
-          <button class="btn ghost" onclick="closeBooking()">Back</button>
-        </div>
-      </div>
-
-      <div id="booking-body" class="booking-body">
-        <div id="loader" class="loader" aria-live="polite">
-          <div class="spinner" aria-hidden="true"></div>
-          <div>Loading booking widget…</div>
-        </div>
-
-        <!-- viewport where Bookeo will inject -->
-        <div id="widget-viewport" class="widget-viewport" aria-live="polite"></div>
-      </div>
-    </div>
-
-    <footer>
-      If the widget doesn't appear, open the booking page directly on Bookeo or contact support.
-    </footer>
+  <div>
+    <button class="btn" onclick="openBooking('marousi')">Marousi Store</button>
+    <button class="btn" onclick="openBooking('kallithea')">Kallithea Store</button>
+    <button class="ghost" onclick="clearConsole()">Clear Console</button>
   </div>
 
-  <script>
-    // ---------- CONFIG: put the exact Bookeo widget script URLs here ----------
-    const BOOKEO = {
-      marousi: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33",
-      kallithea: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33&type=42557XC979Y18F5CEE2F5A"
-    };
+  <div id="widget-viewport" aria-live="polite">
+    <div id="loader" class="loader">No widget loaded yet.</div>
+  </div>
 
-    // ---------- OPTIONAL FALLBACK: direct Bookeo page URLs (if widget cannot re-init) ----------
-    // If Bookeo provides full hosted booking page URLs for each business/type you can use them as a fallback.
-    // Example (replace with real Bookeo page links if available):
-    const BOOKEO_PAGE = {
-      marousi: "https://www.bookeo.com/your-bookeo-page-for-marousi", // <-- REPLACE if you have actual URLs
-      kallithea: "https://www.bookeo.com/your-bookeo-page-for-kallithea" // <-- REPLACE if available
-    };
-    // To force the iframe fallback, set FORCE_IFRAME_FALLBACK = true
-    const FORCE_IFRAME_FALLBACK = false;
+  <div id="fallback" style="display:none;">
+    <div class="error" id="fallback-msg"></div>
+    <a id="fallback-link" class="linkfallback" href="#" target="_blank" rel="noopener">Open booking in new tab</a>
+  </div>
 
-    // state
-    let currentStore = null;
-    let currentScriptEl = null;
-    let previousInjectedNodes = [];
+  <h3 style="margin-top:18px">Debug output (copy/paste to me if it still fails)</h3>
+  <pre id="debuglog">-- logs will appear here --</pre>
 
-    function openBooking(store) {
-      // UI show
-      document.getElementById('chooser').style.display = 'none';
-      const booking = document.getElementById('booking');
-      const title = document.getElementById('booking-title');
-      booking.style.display = 'block';
-      booking.setAttribute('aria-hidden','false');
+<script>
+  // CONFIG
+  const BOOKEO = {
+    marousi: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33",
+    kallithea: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33&type=42557XC979Y18F5CEE2F5A"
+  };
+  // If you have direct booking pages for fallback, put them here:
+  const BOOKEO_PAGE = {
+    marousi: "https://www.bookeo.com/your-bookeo-page-for-marousi",
+    kallithea: "https://www.bookeo.com/your-bookeo-page-for-kallithea"
+  };
 
-      title.textContent = store === 'marousi' ? 'Marousi Store — Book Now' : 'Kallithea Store — Book Now';
-      document.getElementById('loader').style.display = 'flex';
-      const viewport = document.getElementById('widget-viewport');
-      viewport.innerHTML = ''; // clear viewport
+  const viewport = document.getElementById('widget-viewport');
+  const loader = document.getElementById('loader');
+  const fallback = document.getElementById('fallback');
+  const fallbackMsg = document.getElementById('fallback-msg');
+  const fallbackLink = document.getElementById('fallback-link');
+  const debugEl = document.getElementById('debuglog');
 
-      // cleanup any globals / previous nodes
-      cleanupBookeo();
+  // small helper to log to screen + console
+  function logDebug(...args){
+    console.log(...args);
+    const s = args.map(a => {
+      try { return (typeof a === 'object')? JSON.stringify(a,null,2) : String(a); } catch(e) { return String(a); }
+    }).join(' ');
+    debugEl.textContent += s + "\n\n";
+  }
 
-      currentStore = store;
-
-      // Choose whether to use dynamic script or iframe fallback
-      if (FORCE_IFRAME_FALLBACK) {
-        insertIframeFallback(store);
-      } else {
-        insertBookeoScript(store);
-      }
-
-      // scroll
-      setTimeout(() => { const el = document.getElementById('booking'); if (el) el.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
-    }
-
-    function closeBooking(){
-      document.getElementById('booking').style.display = 'none';
-      document.getElementById('booking').setAttribute('aria-hidden','true');
-      document.getElementById('chooser').style.display = 'grid';
-      document.getElementById('loader').style.display = 'flex';
-      // cleanup
-      cleanupBookeo();
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
-
-    function insertIframeFallback(store){
-      const viewport = document.getElementById('widget-viewport');
-      // If you don't have real Bookeo full-page URLs, this will be a placeholder and won't work.
-      // Replace BOOKEO_PAGE entries with real links if Bookeo supplies them.
-      const url = BOOKEO_PAGE[store];
-      if(!url || url.indexOf('your-bookeo-page') !== -1){
-        // no real fallback URL provided — show an informative message
-        viewport.innerHTML = '<div style="padding:40px; text-align:center; color:var(--muted)">No direct booking page URL configured. Please use the dynamic widget option or provide the full Bookeo page URL for this store.</div>';
-        document.getElementById('loader').style.display = 'none';
-        return;
-      }
-      const ifr = document.createElement('iframe');
-      ifr.src = url;
-      ifr.width = '100%';
-      ifr.height = '900';
-      ifr.frameBorder = '0';
-      ifr.className = 'widget-frame';
-      viewport.appendChild(ifr);
-      // hide loader once iframe is added
-      setTimeout(()=>{ document.getElementById('loader').style.display = 'none'; }, 700);
-    }
-
-    function insertBookeoScript(store){
-      const scriptUrl = BOOKEO[store];
-      if(!scriptUrl){
-        document.getElementById('widget-viewport').innerHTML = '<div style="padding:40px; text-align:center; color:var(--muted)">Booking not configured for this store.</div>';
-        document.getElementById('loader').style.display = 'none';
-        return;
-      }
-
-      // create script element and append to viewport. Bookeo's script typically injects markup into the document
-      const viewport = document.getElementById('widget-viewport');
-
-      // Some widgets expect a wrapper element with a specific id/class. If Bookeo needs that, create it here.
-      const wrapper = document.createElement('div');
-      wrapper.id = 'bookeo-wrapper-' + store;
-      viewport.appendChild(wrapper);
-
-      // create the script element
-      const s = document.createElement('script');
-      s.type = 'text/javascript';
-      s.src = scriptUrl;
-      s.async = true;
-      s.id = 'bookeo-script-' + store;
-
-      // store references for cleanup
-      currentScriptEl = s;
-      previousInjectedNodes = [];
-
-      // intercept DOM mutation after script runs, to be able to clean it later.
-      // We'll watch the wrapper and record child nodes it creates.
-      const mo = new MutationObserver(function(mutations){
-        mutations.forEach(m => {
-          m.addedNodes.forEach(node => previousInjectedNodes.push(node));
-        });
-      });
-      mo.observe(wrapper, { childList: true, subtree: true });
-
-      // append the script to the wrapper
-      wrapper.appendChild(s);
-
-      // Give script time to run — hide loader after a short delay.
-      // If Bookeo provides a callback or fires an event, ideally you'd hook that instead.
-      setTimeout(function(){
-        // stop observing
-        try { mo.disconnect(); } catch(e){}
-        document.getElementById('loader').style.display = 'none';
-      }, 1200);
-
-      // safety: if widget hasn't inserted nodes after some time, hide loader anyway
-      setTimeout(function(){
-        if(document.getElementById('loader') && document.getElementById('loader').style.display !== 'none'){
-          document.getElementById('loader').style.display = 'none';
-        }
-      }, 6000);
-    }
-
-    function cleanupBookeo(){
-      // Remove previously appended script element
-      try {
-        if(currentScriptEl && currentScriptEl.parentNode) {
-          currentScriptEl.parentNode.removeChild(currentScriptEl);
-        }
-      } catch(e){ /* ignore */ }
-
-      // Remove injected nodes recorded earlier
-      try {
-        previousInjectedNodes.forEach(n => { if(n && n.parentNode) n.parentNode.removeChild(n); });
-      } catch(e){ /* ignore */ }
-
-      previousInjectedNodes = [];
-
-      // Also attempt to remove any Bookeo global object if present (best-effort).
-      // WARNING: This relies on guessing the global name; Bookeo may not expose a safe cleanup API.
-      // We're being conservative and deleting common global names if detected.
-      try {
-        if(window.Bookeo) { try { delete window.Bookeo; } catch(e){ window.Bookeo = undefined; } }
-        if(window.bookeo) { try { delete window.bookeo; } catch(e){ window.bookeo = undefined; } }
-      } catch(e){ /* ignore */ }
-
-      // Clear viewport entirely to ensure clean start
-      const viewport = document.getElementById('widget-viewport');
-      if(viewport) viewport.innerHTML = '';
-      // reset currentScriptEl
-      currentScriptEl = null;
-    }
-
-    // ESC to close
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape'){
-        const booking = document.getElementById('booking');
-        if(booking && booking.style.display === 'block'){ closeBooking(); }
-      }
+  // cleanup any previous bookeo insertions
+  function cleanupBookeo(){
+    logDebug('[cleanup] removing previous bookeo script and potential injected nodes...');
+    // remove any <script> tags we inserted earlier that have id starting bookeo-script-
+    document.querySelectorAll('script[id^="bookeo-script-"]').forEach(s => {
+      try { s.parentNode.removeChild(s); logDebug('[cleanup] removed script', s.id); } catch(e){ logDebug('[cleanup] remove script failed', e); }
     });
 
-    // Optional: If you notice Bookeo only initializes once per page even after this,
-    // set FORCE_IFRAME_FALLBACK = true above and supply actual BOOKEO_PAGE URLs.
-  </script>
+    // try delete common globals (best-effort)
+    try {
+      if(window.Bookeo){ try{ delete window.Bookeo; logDebug('[cleanup] deleted window.Bookeo'); }catch(e){ window.Bookeo = undefined; logDebug('[cleanup] set window.Bookeo=undefined'); } }
+      if(window.bookeo){ try{ delete window.bookeo; logDebug('[cleanup] deleted window.bookeo'); }catch(e){ window.bookeo = undefined; logDebug('[cleanup] set window.bookeo=undefined'); } }
+    } catch(e){ logDebug('[cleanup] error deleting globals', e); }
+
+    // Remove any nodes we know Bookeo uses (common guess: iframes from bookeo domain)
+    document.querySelectorAll('iframe').forEach(ifr => {
+      try {
+        if(ifr.src && ifr.src.indexOf('bookeo.com') !== -1){
+          ifr.parentNode.removeChild(ifr);
+          logDebug('[cleanup] removed iframe with src', ifr.src);
+        }
+      } catch(e){ /* ignore cross-origin read issues */ }
+    });
+
+    // clear viewport
+    viewport.innerHTML = '';
+    viewport.appendChild(loader);
+    loader.style.display = 'block';
+    fallback.style.display = 'none';
+  }
+
+  // open booking flow
+  function openBooking(store){
+    logDebug('openBooking ->', store);
+    cleanupBookeo();
+    // create a wrapper so we can observe nodes created in the DOM
+    const wrapper = document.createElement('div');
+    wrapper.id = 'bookeo-wrapper-' + store + '-' + Date.now();
+    viewport.appendChild(wrapper);
+
+    // attempt dynamic script insertion into head (some widgets require being inserted in head)
+    insertBookeoScriptIntoHead(store, wrapper);
+  }
+
+  function insertBookeoScriptIntoHead(store, wrapper){
+    const baseUrl = BOOKEO[store];
+    if(!baseUrl){
+      showFallback('No Bookeo script configured for this store.');
+      return;
+    }
+
+    // cache-bust to force fresh execution
+    const url = baseUrl + (baseUrl.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now();
+    logDebug('[insert] script URL =', url);
+
+    // mutation observer: watch the whole document body for nodes that come from Bookeo
+    const foundNodes = [];
+    const mo = new MutationObserver(muts => {
+      muts.forEach(m => {
+        m.addedNodes.forEach(n => {
+          try {
+            // look for iframe injected by Bookeo
+            if(n.tagName === 'IFRAME' && n.src && n.src.indexOf('bookeo.com') !== -1){
+              foundNodes.push(n);
+              logDebug('[observer] found bookeo iframe:', n.src);
+            } else if(n.querySelector && n.querySelector('iframe') && n.querySelector('iframe').src.indexOf('bookeo.com') !== -1){
+              foundNodes.push(n.querySelector('iframe'));
+              logDebug('[observer] found nested bookeo iframe', n.querySelector('iframe').src);
+            } else {
+              // record any added HTML for debugging
+              logDebug('[observer] added node:', n.tagName || n.nodeName, n.nodeType);
+            }
+          } catch(e){ logDebug('[observer] error reading added node', e); }
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    // create script element
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.src = url;
+    s.async = false; // try sync eval — sometimes helps with initialization order
+    s.id = 'bookeo-script-' + store + '-' + Date.now();
+    try {
+      // append to head
+      (document.head || document.documentElement).appendChild(s);
+      logDebug('[insert] script appended to head with id', s.id);
+    } catch(e){
+      logDebug('[insert] script append failed', e);
+      // fallback to appending into wrapper
+      try { wrapper.appendChild(s); logDebug('[insert] script appended to wrapper instead'); } catch(err){ logDebug('[insert] script append to wrapper also failed', err); showFallback('Unable to append Bookeo script.'); mo.disconnect(); return; }
+    }
+
+    // monitor for success: wait up to 6s for an iframe or other sign
+    const start = Date.now();
+    const checkInterval = 300;
+    const maxWait = 6000;
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      // if any likely Bookeo iframe found inside document or wrapper
+      const bookeoIframes = Array.from(document.querySelectorAll('iframe')).filter(ifr => {
+        try { return ifr.src && ifr.src.indexOf('bookeo.com') !== -1; } catch(e){ return false; }
+      });
+      if(bookeoIframes.length > 0){
+        logDebug('[success] Bookeo iframe(s) detected:', bookeoIframes.map(i=>i.src));
+        loader.style.display = 'none';
+        mo.disconnect();
+        clearInterval(interval);
+        // move the first iframe inside our wrapper for visual containment (best effort, might be blocked cross-origin)
+        try {
+          const first = bookeoIframes[0];
+          wrapper.appendChild(first);
+          logDebug('[move] moved iframe into wrapper');
+        } catch(e){
+          logDebug('[move] could not move iframe (likely cross-origin); leaving it in place', e);
+        }
+        return;
+      }
+
+      // also check if Bookeo created any DOM inside wrapper (non-iframe)
+      const wrapperHasChildren = wrapper.children.length > 0;
+      if(wrapperHasChildren){
+        logDebug('[success] wrapper has children:', wrapper.children.length);
+        loader.style.display = 'none';
+        mo.disconnect();
+        clearInterval(interval);
+        return;
+      }
+
+      if(elapsed > maxWait){
+        logDebug('[timeout] Bookeo script did not inject an iframe or content within', maxWait, 'ms');
+        mo.disconnect();
+        clearInterval(interval);
+        // show helpful fallback message and instructions
+        showFallback('The Bookeo widget did not initialize within the expected time. Possible causes: Bookeo blocks multiple instances on the same page, Content Security Policy (CSP) blocking external scripts, or the widget requires a direct Bookeo page. See console for details.');
+        // Also dump some environment info to debug output
+        dumpEnv();
+      }
+    }, checkInterval);
+
+    // safety: if script errors, listen for window error
+    const onError = (evt) => {
+      logDebug('[error event] ', evt.message || evt);
+      showFallback('A script error occurred while loading the Bookeo widget. Check the console for details.');
+      window.removeEventListener('error', onError);
+    };
+    window.addEventListener('error', onError);
+  }
+
+  function showFallback(message){
+    loader.style.display = 'none';
+    fallback.style.display = 'block';
+    fallbackMsg.textContent = message;
+    // set fallback link to Bookeo page if provided or to Bookeo root
+    const url = BOOKEO_PAGE[currentStore] || 'https://www.bookeo.com/';
+    fallbackLink.href = url;
+    logDebug('[fallback] message:', message, 'link->', url);
+  }
+
+  function dumpEnv(){
+    try {
+      logDebug('--- ENV DUMP ---');
+      logDebug('location.href =', window.location.href);
+      logDebug('document.domain =', document.domain);
+      logDebug('protocol =', location.protocol);
+      logDebug('origin =', location.origin);
+      // list scripts on page
+      const scripts = Array.from(document.scripts).map(s => ({src: s.src, id: s.id, async: s.async}));
+      logDebug('scripts on page:', scripts);
+      // CSP header check (not accessible via JS) — advise user to check network panel response headers of the page.
+      logDebug('--- END ENV DUMP ---');
+    } catch(e){ logDebug('env dump failed', e); }
+  }
+
+  // convenience
+  function clearConsole(){
+    debugEl.textContent = '';
+    console.clear();
+    logDebug('[action] console cleared');
+  }
+
+  let currentStore = null;
+</script>
 </body>
 </html>
