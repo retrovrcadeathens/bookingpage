@@ -3,253 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Retro VRcade — Booking Debug</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Retro VRcade — Booking (Recovery)</title>
   <style>
-    body{font-family:"Montserrat",system-ui,Arial;margin:20px;color:#0b0b0b}
-    .btn{background:#1fb6ff;color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
-    .ghost{background:transparent;border:1px solid #ddd;color:#111;padding:8px 12px;border-radius:8px}
-    #widget-viewport{min-height:420px;border:1px dashed #e5e7eb;padding:12px;margin-top:12px;border-radius:8px}
-    .loader{padding:30px;text-align:center;color:#666}
-    .error{padding:18px;background:#fff4f4;border:1px solid #ffd2d2;color:#8b0000;border-radius:8px;margin-top:12px}
-    .note{font-size:13px;color:#666;margin-top:8px}
-    a.linkfallback{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:#f3f4f6;color:#111;text-decoration:none}
-    pre{background:#0f1724;color:#d1fae5;padding:12px;border-radius:6px;overflow:auto;max-height:220px}
+    body{font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; padding:24px; background:#fff; color:#0b0b0b;}
+    .wrap{max-width:900px;margin:40px auto;}
+    h1{font-size:20px;margin:0 0 8px;}
+    p{color:#555;margin:0 0 16px;}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:#1fb6ff;color:#fff;text-decoration:none;font-weight:700;margin-right:10px;}
+    .note{margin-top:18px;color:#666;font-size:14px;}
+    .danger{background:#ffecec;border:1px solid #ffd2d2;padding:12px;border-radius:8px;color:#8b0000;margin-top:18px;}
+    footer{margin-top:28px;color:#666;font-size:13px;}
   </style>
 </head>
 <body>
-  <h2>Retro VRcade — Booking Debug</h2>
-  <p class="note">Click a store. Open DevTools → Console to view debug logs. If nothing appears, use the fallback link shown.</p>
+  <div class="wrap" role="main">
+    <h1>Retro VRcade — Booking (Recovery)</h1>
+    <p>This is a safe recovery page. The booking widget has been temporarily disabled to stop an issue. Use the links below to access the booking system directly or return to your main site.</p>
 
-  <div>
-    <button class="btn" onclick="openBooking('marousi')">Marousi Store</button>
-    <button class="btn" onclick="openBooking('kallithea')">Kallithea Store</button>
-    <button class="ghost" onclick="clearConsole()">Clear Console</button>
+    <a class="btn" href="https://retrovrcade.com" target="_blank" rel="noopener">Return to site</a>
+    <a class="btn" href="https://www.bookeo.com/" target="_blank" rel="noopener">Open Bookeo</a>
+
+    <div class="danger">
+      If this page replaced the booking page to stop a crash loop, you’re safe now. To restore booking functionality, either remove the embedded iframe from your GoDaddy page or replace this file with a corrected booking file I will provide.
+    </div>
+
+    <p class="note">When you’re ready: upload the simple recovery file now. Then tell me and I’ll provide a lighter, safe debug variant (no observers, one-shot script insertion) so we can test the Bookeo widget without causing a loop.</p>
+
+    <footer>Need me to produce the safe test file now? I will — just say “yes, give me the safe test file.”</footer>
   </div>
-
-  <div id="widget-viewport" aria-live="polite">
-    <div id="loader" class="loader">No widget loaded yet.</div>
-  </div>
-
-  <div id="fallback" style="display:none;">
-    <div class="error" id="fallback-msg"></div>
-    <a id="fallback-link" class="linkfallback" href="#" target="_blank" rel="noopener">Open booking in new tab</a>
-  </div>
-
-  <h3 style="margin-top:18px">Debug output (copy/paste to me if it still fails)</h3>
-  <pre id="debuglog">-- logs will appear here --</pre>
-
-<script>
-  // CONFIG
-  const BOOKEO = {
-    marousi: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33",
-    kallithea: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33&type=42557XC979Y18F5CEE2F5A"
-  };
-  // If you have direct booking pages for fallback, put them here:
-  const BOOKEO_PAGE = {
-    marousi: "https://www.bookeo.com/your-bookeo-page-for-marousi",
-    kallithea: "https://www.bookeo.com/your-bookeo-page-for-kallithea"
-  };
-
-  const viewport = document.getElementById('widget-viewport');
-  const loader = document.getElementById('loader');
-  const fallback = document.getElementById('fallback');
-  const fallbackMsg = document.getElementById('fallback-msg');
-  const fallbackLink = document.getElementById('fallback-link');
-  const debugEl = document.getElementById('debuglog');
-
-  // small helper to log to screen + console
-  function logDebug(...args){
-    console.log(...args);
-    const s = args.map(a => {
-      try { return (typeof a === 'object')? JSON.stringify(a,null,2) : String(a); } catch(e) { return String(a); }
-    }).join(' ');
-    debugEl.textContent += s + "\n\n";
-  }
-
-  // cleanup any previous bookeo insertions
-  function cleanupBookeo(){
-    logDebug('[cleanup] removing previous bookeo script and potential injected nodes...');
-    // remove any <script> tags we inserted earlier that have id starting bookeo-script-
-    document.querySelectorAll('script[id^="bookeo-script-"]').forEach(s => {
-      try { s.parentNode.removeChild(s); logDebug('[cleanup] removed script', s.id); } catch(e){ logDebug('[cleanup] remove script failed', e); }
-    });
-
-    // try delete common globals (best-effort)
-    try {
-      if(window.Bookeo){ try{ delete window.Bookeo; logDebug('[cleanup] deleted window.Bookeo'); }catch(e){ window.Bookeo = undefined; logDebug('[cleanup] set window.Bookeo=undefined'); } }
-      if(window.bookeo){ try{ delete window.bookeo; logDebug('[cleanup] deleted window.bookeo'); }catch(e){ window.bookeo = undefined; logDebug('[cleanup] set window.bookeo=undefined'); } }
-    } catch(e){ logDebug('[cleanup] error deleting globals', e); }
-
-    // Remove any nodes we know Bookeo uses (common guess: iframes from bookeo domain)
-    document.querySelectorAll('iframe').forEach(ifr => {
-      try {
-        if(ifr.src && ifr.src.indexOf('bookeo.com') !== -1){
-          ifr.parentNode.removeChild(ifr);
-          logDebug('[cleanup] removed iframe with src', ifr.src);
-        }
-      } catch(e){ /* ignore cross-origin read issues */ }
-    });
-
-    // clear viewport
-    viewport.innerHTML = '';
-    viewport.appendChild(loader);
-    loader.style.display = 'block';
-    fallback.style.display = 'none';
-  }
-
-  // open booking flow
-  function openBooking(store){
-    logDebug('openBooking ->', store);
-    cleanupBookeo();
-    // create a wrapper so we can observe nodes created in the DOM
-    const wrapper = document.createElement('div');
-    wrapper.id = 'bookeo-wrapper-' + store + '-' + Date.now();
-    viewport.appendChild(wrapper);
-
-    // attempt dynamic script insertion into head (some widgets require being inserted in head)
-    insertBookeoScriptIntoHead(store, wrapper);
-  }
-
-  function insertBookeoScriptIntoHead(store, wrapper){
-    const baseUrl = BOOKEO[store];
-    if(!baseUrl){
-      showFallback('No Bookeo script configured for this store.');
-      return;
-    }
-
-    // cache-bust to force fresh execution
-    const url = baseUrl + (baseUrl.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now();
-    logDebug('[insert] script URL =', url);
-
-    // mutation observer: watch the whole document body for nodes that come from Bookeo
-    const foundNodes = [];
-    const mo = new MutationObserver(muts => {
-      muts.forEach(m => {
-        m.addedNodes.forEach(n => {
-          try {
-            // look for iframe injected by Bookeo
-            if(n.tagName === 'IFRAME' && n.src && n.src.indexOf('bookeo.com') !== -1){
-              foundNodes.push(n);
-              logDebug('[observer] found bookeo iframe:', n.src);
-            } else if(n.querySelector && n.querySelector('iframe') && n.querySelector('iframe').src.indexOf('bookeo.com') !== -1){
-              foundNodes.push(n.querySelector('iframe'));
-              logDebug('[observer] found nested bookeo iframe', n.querySelector('iframe').src);
-            } else {
-              // record any added HTML for debugging
-              logDebug('[observer] added node:', n.tagName || n.nodeName, n.nodeType);
-            }
-          } catch(e){ logDebug('[observer] error reading added node', e); }
-        });
-      });
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    // create script element
-    const s = document.createElement('script');
-    s.type = 'text/javascript';
-    s.src = url;
-    s.async = false; // try sync eval — sometimes helps with initialization order
-    s.id = 'bookeo-script-' + store + '-' + Date.now();
-    try {
-      // append to head
-      (document.head || document.documentElement).appendChild(s);
-      logDebug('[insert] script appended to head with id', s.id);
-    } catch(e){
-      logDebug('[insert] script append failed', e);
-      // fallback to appending into wrapper
-      try { wrapper.appendChild(s); logDebug('[insert] script appended to wrapper instead'); } catch(err){ logDebug('[insert] script append to wrapper also failed', err); showFallback('Unable to append Bookeo script.'); mo.disconnect(); return; }
-    }
-
-    // monitor for success: wait up to 6s for an iframe or other sign
-    const start = Date.now();
-    const checkInterval = 300;
-    const maxWait = 6000;
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - start;
-      // if any likely Bookeo iframe found inside document or wrapper
-      const bookeoIframes = Array.from(document.querySelectorAll('iframe')).filter(ifr => {
-        try { return ifr.src && ifr.src.indexOf('bookeo.com') !== -1; } catch(e){ return false; }
-      });
-      if(bookeoIframes.length > 0){
-        logDebug('[success] Bookeo iframe(s) detected:', bookeoIframes.map(i=>i.src));
-        loader.style.display = 'none';
-        mo.disconnect();
-        clearInterval(interval);
-        // move the first iframe inside our wrapper for visual containment (best effort, might be blocked cross-origin)
-        try {
-          const first = bookeoIframes[0];
-          wrapper.appendChild(first);
-          logDebug('[move] moved iframe into wrapper');
-        } catch(e){
-          logDebug('[move] could not move iframe (likely cross-origin); leaving it in place', e);
-        }
-        return;
-      }
-
-      // also check if Bookeo created any DOM inside wrapper (non-iframe)
-      const wrapperHasChildren = wrapper.children.length > 0;
-      if(wrapperHasChildren){
-        logDebug('[success] wrapper has children:', wrapper.children.length);
-        loader.style.display = 'none';
-        mo.disconnect();
-        clearInterval(interval);
-        return;
-      }
-
-      if(elapsed > maxWait){
-        logDebug('[timeout] Bookeo script did not inject an iframe or content within', maxWait, 'ms');
-        mo.disconnect();
-        clearInterval(interval);
-        // show helpful fallback message and instructions
-        showFallback('The Bookeo widget did not initialize within the expected time. Possible causes: Bookeo blocks multiple instances on the same page, Content Security Policy (CSP) blocking external scripts, or the widget requires a direct Bookeo page. See console for details.');
-        // Also dump some environment info to debug output
-        dumpEnv();
-      }
-    }, checkInterval);
-
-    // safety: if script errors, listen for window error
-    const onError = (evt) => {
-      logDebug('[error event] ', evt.message || evt);
-      showFallback('A script error occurred while loading the Bookeo widget. Check the console for details.');
-      window.removeEventListener('error', onError);
-    };
-    window.addEventListener('error', onError);
-  }
-
-  function showFallback(message){
-    loader.style.display = 'none';
-    fallback.style.display = 'block';
-    fallbackMsg.textContent = message;
-    // set fallback link to Bookeo page if provided or to Bookeo root
-    const url = BOOKEO_PAGE[currentStore] || 'https://www.bookeo.com/';
-    fallbackLink.href = url;
-    logDebug('[fallback] message:', message, 'link->', url);
-  }
-
-  function dumpEnv(){
-    try {
-      logDebug('--- ENV DUMP ---');
-      logDebug('location.href =', window.location.href);
-      logDebug('document.domain =', document.domain);
-      logDebug('protocol =', location.protocol);
-      logDebug('origin =', location.origin);
-      // list scripts on page
-      const scripts = Array.from(document.scripts).map(s => ({src: s.src, id: s.id, async: s.async}));
-      logDebug('scripts on page:', scripts);
-      // CSP header check (not accessible via JS) — advise user to check network panel response headers of the page.
-      logDebug('--- END ENV DUMP ---');
-    } catch(e){ logDebug('env dump failed', e); }
-  }
-
-  // convenience
-  function clearConsole(){
-    debugEl.textContent = '';
-    console.clear();
-    logDebug('[action] console cleared');
-  }
-
-  let currentStore = null;
-</script>
 </body>
 </html>
