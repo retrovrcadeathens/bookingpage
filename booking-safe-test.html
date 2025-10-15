@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Retro VRcade — Booking Test (Safe)</title>
+
+  <!-- Montserrat to visually match your site -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#ffffff; --text:#0b0b0b; --muted:#666666;
+      --accent:#1fb6ff; --card-bg:#f8f9fb; --radius:12px; --shadow: 0 8px 24px rgba(11,11,11,0.08);
+      --max-width:980px;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family:"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased;
+    }
+    .wrap{max-width:var(--max-width); margin:28px auto; padding:20px;}
+    header{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px;}
+    .brand h1{margin:0;font-size:18px;}
+    .note{color:var(--muted); margin-top:4px; font-size:13px;}
+
+    .controls{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
+    .btn {
+      background:var(--accent); color:white; border:0; padding:10px 14px; border-radius:10px;
+      cursor:pointer; font-weight:700; text-transform:uppercase; letter-spacing:0.8px;
+      box-shadow:0 8px 20px rgba(31,182,255,0.14);
+    }
+    .btn.ghost{ background:transparent; color:var(--text); border:1px solid rgba(0,0,0,0.06); box-shadow:none; text-transform:none; font-weight:600;}
+
+    /* container where widget should appear */
+    #viewport {
+      border-radius:12px; background:white; min-height:520px; border:1px solid rgba(0,0,0,0.06);
+      box-shadow:var(--shadow); overflow:hidden; position:relative;
+    }
+    #status {
+      padding:28px; text-align:center; color:var(--muted);
+    }
+    #fallback {
+      display:none; padding:18px; text-align:center; background:#fff7ed; color:#663c00;
+    }
+    .link {
+      display:inline-block; margin-top:12px; padding:10px 14px; border-radius:10px; background:#111; color:#fff; text-decoration:none;
+    }
+    pre { margin:14px 12px; padding:10px; background:#0b1220; color:#dff7ff; border-radius:8px; overflow:auto; max-height:180px; font-size:13px; }
+    footer{ margin-top:16px; color:var(--muted); font-size:13px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Retro VRcade — Booking Test</h1>
+        <div class="note">Safe one-shot script test — no observers, no loops.</div>
+      </div>
+      <div>
+        <a class="btn ghost" href="https://retrovrcade.com" target="_blank" rel="noopener">Open Site</a>
+      </div>
+    </header>
+
+    <div class="controls" aria-hidden="false">
+      <button class="btn" onclick="startTest('marousi')">Marousi Store</button>
+      <button class="btn" onclick="startTest('kallithea')">Kallithea Store</button>
+      <button class="btn ghost" onclick="resetTest()">Reset</button>
+    </div>
+
+    <div id="viewport" aria-live="polite">
+      <div id="status">No widget loaded. Click a store to run the one-shot test.</div>
+      <div id="fallback" role="region" aria-hidden="true">
+        <div id="fallback-msg"></div>
+        <a id="fallback-link" class="link" href="#" target="_blank" rel="noopener">Open booking in new tab</a>
+      </div>
+    </div>
+
+    <h4 style="margin-top:18px">Console / quick logs (for diagnostics)</h4>
+    <pre id="log">-- logs will appear here --</pre>
+
+    <footer>After testing, paste the log text here if the widget still fails and I’ll analyze it.</footer>
+  </div>
+
+<script>
+  // --------------- CONFIGURATION ---------------
+  const BOOKEO = {
+    marousi: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33",
+    kallithea: "https://bookeo.com/widget.js?a=42557P4NLT918F5CA71E33&type=42557XC979Y18F5CEE2F5A"
+  };
+
+  // If you have full Bookeo page URLs for fallback, paste them here:
+  const BOOKEO_PAGE = {
+    marousi: "https://www.bookeo.com/your-bookeo-page-for-marousi", // replace if available
+    kallithea: "https://www.bookeo.com/your-bookeo-page-for-kallithea" // replace if available
+  };
+
+  const viewport = document.getElementById('viewport');
+  const status = document.getElementById('status');
+  const fallback = document.getElementById('fallback');
+  const fallbackMsg = document.getElementById('fallback-msg');
+  const fallbackLink = document.getElementById('fallback-link');
+  const logEl = document.getElementById('log');
+
+  let activeStore = null;
+  let insertedScriptId = null;
+  const LOG = (msg) => {
+    const time = new Date().toISOString().slice(11,23);
+    console.log('[safe-test]', time, msg);
+    logEl.textContent += '[' + time + '] ' + String(msg) + "\n";
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+
+  function clearViewport(){
+    // remove our wrapper if present
+    const wrapper = document.getElementById('bookeo-wrapper');
+    if(wrapper && wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+    // remove script we inserted (if any)
+    if(insertedScriptId){
+      const el = document.getElementById(insertedScriptId);
+      if(el && el.parentNode) el.parentNode.removeChild(el);
+      insertedScriptId = null;
+    }
+    // reset UI
+    status.style.display = 'block';
+    status.textContent = 'No widget loaded. Click a store to run the one-shot test.';
+    fallback.style.display = 'none';
+    fallback.setAttribute('aria-hidden','true');
+  }
+
+  // one-shot test: insert script into head once, wait for up to maxWait ms
+  function startTest(store){
+    LOG('Starting one-shot test for: ' + store);
+    clearViewport();
+    activeStore = store;
+
+    // create a wrapper for containment (not required by Bookeo but useful)
+    const wrapper = document.createElement('div');
+    wrapper.id = 'bookeo-wrapper';
+    wrapper.style.minHeight = '420px';
+    wrapper.style.width = '100%';
+    wrapper.style.boxSizing = 'border-box';
+    // insert wrapper at top of viewport
+    viewport.insertBefore(wrapper, status);
+    status.textContent = 'Loading widget for ' + store + ' — waiting for initialization...';
+
+    // inject script into head (with cache-bust)
+    const base = BOOKEO[store];
+    if(!base){
+      LOG('No script configured for ' + store);
+      showFallback('No Bookeo script configured for this store.');
+      return;
+    }
+    const url = base + (base.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now();
+    const scriptId = 'bookeo-onceshot-' + store + '-' + Date.now();
+    insertedScriptId = scriptId;
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.src = url;
+    s.async = true;
+    s.id = scriptId;
+
+    // append to head (preferred) — some widgets expect this
+    try {
+      (document.head || document.documentElement).appendChild(s);
+      LOG('Appended script to head: ' + url);
+    } catch(e){
+      LOG('Append to head failed, appending to wrapper: ' + e);
+      try { wrapper.appendChild(s); LOG('Appended script to wrapper.'); } catch(err){ LOG('Failed to append script to wrapper: ' + err); showFallback('Unable to add Bookeo script to page.'); return; }
+    }
+
+    // After a short wait (maxWait), check if Bookeo injected something inside wrapper or if an iframe exists
+    const maxWait = 6000; // ms
+    setTimeout(function(){
+      LOG('One-shot timeout reached; checking for widget presence...');
+      // 1) check wrapper children
+      const hasChildren = wrapper.children.length > 0;
+      // 2) check for any bookeo iframe in document
+      const bookeoIframes = Array.from(document.querySelectorAll('iframe')).filter(ifr => {
+        try { return ifr.src && ifr.src.indexOf('bookeo.com') !== -1; } catch(e){ return false; }
+      });
+
+      if(hasChildren){
+        LOG('Wrapper has children — assuming widget initialized.');
+        status.textContent = 'Widget should be visible below. If it looks blank, try the fallback link.';
+        // Hide status (but keep wrapper visible)
+        setTimeout(()=> status.style.display = 'none', 500);
+        return;
+      } else if(bookeoIframes.length > 0){
+        LOG('Detected Bookeo iframe(s) in document: ' + bookeoIframes.map(i=>i.src).join(' | '));
+        // try to move the first iframe into our wrapper (best-effort)
+        try {
+          const ifr = bookeoIframes[0];
+          wrapper.appendChild(ifr);
+          LOG('Moved Bookeo iframe into wrapper.');
+          setTimeout(()=> status.style.display = 'none', 500);
+          return;
+        } catch(e){
+          LOG('Could not move iframe (likely cross-origin): ' + e);
+          status.textContent = 'Widget loaded (iframe present). If you cannot see it, use the fallback link below.';
+        }
+      } else {
+        LOG('No widget detected inside wrapper nor Bookeo iframe found.');
+        showFallback('The Bookeo widget did not initialize. This can happen if Bookeo blocks multiple instances or the hosting environment prevents external scripts from running. Use the fallback link to open the booking page directly.');
+      }
+    }, maxWait + 300); // small buffer
+  }
+
+  function showFallback(message){
+    status.style.display = 'none';
+    fallback.style.display = 'block';
+    fallback.setAttribute('aria-hidden','false');
+    fallbackMsg.textContent = message;
+    const pageUrl = BOOKEO_PAGE[activeStore] || 'https://www.bookeo.com/';
+    fallbackLink.href = pageUrl;
+    LOG('Fallback shown. Link -> ' + pageUrl);
+  }
+
+  function resetTest(){
+    LOG('Reset requested');
+    clearViewport();
+  }
+
+  // safety: clear inserted script on unload
+  window.addEventListener('beforeunload', function(){
+    if(insertedScriptId){
+      const s = document.getElementById(insertedScriptId);
+      if(s && s.parentNode) s.parentNode.removeChild(s);
+      LOG('Removed inserted script on unload.');
+    }
+  });
+
+  LOG('Safe one-shot test loaded. Ready.');
+</script>
+</body>
+</html>
